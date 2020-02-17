@@ -1,0 +1,6 @@
+export const ELASTIC_BASE_API = "http://localhost:9200/"
+export const ELASTIC_BASE_INDEX = "test_food/"
+export const ELASTIC_SEARCH_API = ELASTIC_BASE_API + "_search/"
+export const ELASTIC_SEARCH_SUBMIT = ELASTIC_BASE_API + ELASTIC_BASE_INDEX + "object/"
+export const ELASTIC_SEARCH_SCRIPT = ELASTIC_BASE_API + "_scripts/"
+export const ELASTIC_SEARCH_CLEAR_CACHE = ELASTIC_BASE_API + ELASTIC_BASE_INDEX + "_cache/clear/"

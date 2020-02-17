@@ -1,17 +1,8 @@
 import React, { useState } from 'react'
 import styled from 'styled-components'
-import { useSelector, shallowEqual } from 'react-redux'
 import Checkbox from './Checkbox'
-
-const useClock = () => {
-  return useSelector(
-    state => ({
-      lastUpdate: state.lastUpdate,
-      light: state.light,
-    }),
-    shallowEqual
-  )
-}
+import TextInputWithAutoComplete from './TextInputWithAutoComplete'
+import ScriptParams from './ScriptParams'
 
 const StyledSearchContainer = styled.div`
     padding: 15px;
@@ -24,37 +15,69 @@ const StyledSearchContainer = styled.div`
     border-radius: 10px;
     border: solid 2px #FEDCD8;
 `
-const StyledSearchInput = styled.input`
-    padding: 15px;
-    display: inline-block;
-    color: #9F6164;
-    font: 20px menlo, monaco, monospace;
-    background-color: #F8DEBD;
-`
 
-const SingleSearch = () => {
+const calculateScriptQueryString = (scriptObj) => {
+  console.log({scriptObj})
+  if (!scriptObj.id){
+    return ""
+  }
+  const initialStr = "&scriptId="+scriptObj.id
+  console.log({initialStr})
+  const finalStr = scriptObj.params && scriptObj.params.reduce((acc, param) => {
+    return acc + "&" + param.name + "=" + param.value
+  }, initialStr) ||  initialStr
+  return finalStr
+}
+
+const getAutocompleteSuggestion = (onHit, scriptObj) => async (term) => {
+  console.log(term, "getAutocompleteSuggestion", scriptObj)
+  const baseSearchUrl = "/api/searches?term="+term
+  const scriptQueryString = scriptObj ? calculateScriptQueryString(scriptObj) : "";
+  const response = await fetch(baseSearchUrl+scriptQueryString, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  })
+  const {hits, ...respRest} = await response.json()
+  console.log(respRest)
+  if (hits) {
+    console.log(hits)
+    onHit(hits)
+  }
+}
+
+const SingleSearch = (props) => {
     const [ checkedBox, setCheckBoxStates ] = useState(0)
+    const [script, setScript] = useState({})
     const handleCheckboxChange = (checkedBoxValue) => () => {
         setCheckBoxStates(checkedBoxValue)
     }
+    const onChangeScriptParams = (script) => {
+      setScript(script)
+    }
+    const isRegularSearch = checkedBox == 0
+    const isScriptedSearch = checkedBox == 1;
   return (
     <StyledSearchContainer>
       <Checkbox
-        text="Search type 1"
-        checked={checkedBox == 0}
+        text="Search As Is"
+        checked={isRegularSearch}
         onChange={handleCheckboxChange(0)}
       />
        <Checkbox
-        text="Search type 2"
-        checked={checkedBox == 1}
+        text="Use Script By ID"
+        checked={isScriptedSearch}
         onChange={handleCheckboxChange(1)}
       />
+      <ScriptParams 
+        isVisible={isScriptedSearch}
+        onChange={onChangeScriptParams}
+      />
        <Checkbox
-        text="Search type 3"
+        text="Send Weights"
         checked={checkedBox == 2}
         onChange={handleCheckboxChange(2)}
       />
-      <StyledSearchInput/>
+      <TextInputWithAutoComplete selectedSearchType={checkedBox} onChange={getAutocompleteSuggestion(props.onHit, isScriptedSearch && script || null)}/>
     </StyledSearchContainer>
   )
 }

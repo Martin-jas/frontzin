@@ -1,48 +1,44 @@
-import React from 'react'
+import React, {useState }from 'react'
 import styled from 'styled-components'
-import { useDispatch } from 'react-redux'
 import { withRedux } from '../lib/redux'
-import useInterval from '../lib/useInterval'
-import Clock from '../components/clock'
-import Counter from '../components/counter'
 import SingleSearch from '../components/SingleSearch'
-import Checkbox from '../components/Checkbox'
+import SearchResults from '../components/SearchResults'
+import SubmitItem from '../components/SubmitItem'
+import SubmitScript from '../components/SubmitScript'
+import ClearCache from '../components/ClearCache'
 
-const Title = styled.h1`
-  font-size: 20px;
-  color: ${({ theme }) => theme.colors.primary};
+const UpperContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  grid-template-rows: auto auto;
+  grid-gap: 20px;
+  width: fit-content;
 `
+
+const AppContainer = styled.div`
+  display: block;
+`
+
 const IndexPage = () => {
-  // Tick the time every second
-//   const dispatch = useDispatch()
-//   useInterval(() => {
-//     dispatch({
-//       type: 'TICK',
-//       light: true,
-//       lastUpdate: Date.now(),
-//     })
-//   }, 1000)
+  const [ results, setResults ] = useState([])
+  const onHit = (hits) => {
+
+    const allHits = hits.hits.map( hit => {
+      return { ...hit._source, score: hit._score }
+    })
+    setResults(allHits)
+  }
   return (
-    <>
-      {/* <Title> Relogin </Title>
-      <Clock />
-      <Counter /> */}
-      <SingleSearch/>
-    </>
+    <AppContainer>
+      <ClearCache/>
+      <UpperContainer>
+        <SingleSearch onHit={onHit}/>
+        <SubmitItem />
+        <SubmitScript />
+      </UpperContainer>
+      <SearchResults results={results}/>
+    </AppContainer>
   )
 }
-
-// IndexPage.getInitialProps = ({ reduxStore }) => {
-//   // Tick the time once, so we'll have a
-//   // valid time before first render
-//   const { dispatch } = reduxStore
-//   dispatch({
-//     type: 'TICK',
-//     light: typeof window === 'object',
-//     lastUpdate: Date.now(),
-//   })
-
-//   return {}
-// }
 
 export default withRedux(IndexPage)
